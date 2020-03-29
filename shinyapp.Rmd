@@ -1,0 +1,225 @@
+```{r}
+#Review Analysis
+
+library(shiny)
+library(ggplot2)
+attach(reviews)
+library(tm)
+library(wordcloud)
+library(memoise)
+library(shinythemes)
+library(shinyjs)
+library(shinydashboard)
+library(shinyWidgets)
+library(DT)
+library(tidyverse)
+library(raster)
+library(janeaustenr)
+library(stringr)
+library(gutenbergr)
+library(tidytext)
+library(reshape2)
+library(wordcloud)
+library(textmineR)
+library(stringr)
+library(MASS)
+library(data.table)
+library(ggplot2)
+library(ps)
+
+
+
+reviews <-as.data.frame(reviews)
+#high rated (level 4-5)
+high_rate <- reviews[reviews$Rating > 3,]
+#low rated 
+low_rate <- reviews[reviews$Rating <3,]
+#netrual 
+netrual_rate <- reviews[reviews$Rating == 3,]
+####
+##Netural polarity
+a <-as.character(netrual_rate$Review.Text)
+b <-data_frame(txt =a )
+N <- b%>%
+  unnest_tokens(word,txt)%>%
+  anti_join(stop_words)
+#
+bing_notop <- get_sentiments("bing")%>%
+  filter(word !="top")
+bing_word_counts <- N %>%
+  inner_join(bing_notop)%>%
+  count(word,sentiment,sort = TRUE)
+
+#plot the top 10 words of Negetive or Positive
+data1 <- bing_word_counts %>%
+  group_by(sentiment)%>%
+  top_n(10)%>%
+  ungroup()%>%
+  mutate(word = reorder(word, n))
+
+##p-n
+Netrualsentiment <- b%>%
+  unnest_tokens(word,txt)%>%
+  anti_join(stop_words)%>%
+  count(word,sort = TRUE)  
+
+#IF it's postive or negative
+Netrual_NorP <- Netrualsentiment %>%
+  inner_join(get_sentiments("bing"))
+
+#Remove the "top"
+Netrual_NorP2 <- Netrualsentiment %>%
+  inner_join(bing_notop)%>%
+  spread(sentiment,n,fill=0)%>%
+  mutate(sentiment = positive-negative)
+
+#For wordclouds plots 
+b64 <- base64enc::dataURI(file="low.png", mime="image/png")
+b642 <- base64enc::dataURI(file="high.png", mime="image/png")
+
+
+
+####Main####
+
+ui <-fluidPage(
+  #useShinyjs(),
+  theme = shinytheme("cerulean"),
+  titlePanel("Reviews Analytics"),
+   
+   sidebarLayout(
+      sidebarPanel(
+        #Display dataset 
+        em(strong("Dataset:")),
+        checkboxGroupInput("group","Some columns in dataset to show:",
+                           names(reviews) ),
+        
+    
+      
+        #Descriptive
+        #Display Plots 
+        em(strong("Descriptive:")),
+        selectInput("variable", "Histogram of Some variables:", 
+                    choices=colnames(reviews[,c(2,3,6,8)])),
+        actionBttn("s","Summary",size = "xs",icon = icon("bar-chart-o")),
+        #hr(),  #adding boundary
+        
+        
+        #Sentiment
+        br(),br(),
+        em(strong("Sentiment:")),
+        #selectInput("select","(High/Low Rating):",c("High","Low")),
+        radioGroupButtons("button2","(Neutral Rating):",c("Positive vs Negative"="one","Positive - Negative"="two")),
+        selectInput("select","(WorldCloud):",c("High_rating","Low_rating"))
+        #actionBttn("t","Text Mining",size = "xs",icon = icon("bar-chart-o"))
+       
+      
+        
+       
+      ),
+    
+      
+      mainPanel(
+        textOutput('t',container = h4),
+        tabsetPanel(id = "hide",
+                    tabPanel("Descriptive Analysis",dataTableOutput("datatable"),
+                             plotOutput("Plot"),
+                             textOutput("t123",container = h4)),
+          tabPanel("Sentiment Analysis",plotOutput("Plot2"),textOutput("R",container = h4),textOutput("summary")),
+          tabPanel("WordCloud",textOutput("none2",container = h4),uiOutput("plot3"))
+          )
+        
+                    
+      )
+     
+   )
+  )
+ 
+
+
+
+###
+#title
+server <- function(input, output) {
+  #datatable
+  R = reviews[sample(nrow(reviews),100),]
+  output$datatable <- renderDataTable({
+   datatable(reviews[,input$group,drop=FALSE])
+  })
+  
+#Descriptive
+  # Fill in the spot we created for a plot
+  dataInputx <- reactive({
+    switch(input$variable,
+           "Clothing.ID"=Clothing.ID,
+           "Age"=Age,
+           "Rating"= Rating,
+           "Positive.Feedback.Count"=Positive.Feedback.Count)
+  })
+  
+  output$Plot <- renderPlot({
+    datax <- dataInputx()
+    ggplot(reviews[,c(2,3,6,8)],aes(datax))+
+      geom_histogram(binwidth = 0.5)+
+      labs(x =input$variable,title = "Histogram of Variables")})
+  
+  
+  ntext <-eventReactive(input$s, {
+    print("Based on these four plots, we can conclude that clothing.ID has high density from 800 to 1200; People
+          whose age around 30 to 45 has more interest on purchasing on this website; most people are satisfied with
+          products they purchased; in positive.feedback.count plot, we can see that count 0 has the largest proportion
+          among rest of count numbers.")
+  })
+  output$t123 <-renderText({
+    ntext()
+  })
+  
+  
+  
+  
+  
+  
+### Sentiments analysis
+#positive & negative plots  
+#pn plot:
+  pnplot <- 
+    ggplot(data1,aes(word,n, fill = sentiment)) +
+    geom_col(show.legend = FALSE) +
+    facet_wrap(~sentiment, scales = "free_y") +
+    labs(y = "Contribution to sentiment",
+         x = NULL) +
+    coord_flip() 
+  #se plot:
+  seplot<-
+    ggplot(Netrual_NorP2,aes(word, sentiment)) +
+    geom_col(colour = "red") 
+  
+  
+output$Plot2 <- renderPlot({
+  switch(input$button2,
+        one = pnplot,
+        two = seplot)
+})
+
+
+
+
+#worldcloud
+output$plot3 <- renderUI({
+  switch(input$select,
+         High_rating = img(src=b642,width="800px"),
+         Low_rating = img(src=b64,width="800px"))
+           
+  
+})
+
+
+}
+
+
+
+
+shinyApp(ui = ui, server = server)
+
+
+```
+
