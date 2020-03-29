@@ -23,11 +23,8 @@ library(tidytext)
 library(ggplot2)
 
 ```
-
-#Background:Companies are starting to use social media as a tool for understanding their customers, in order to further improve their products and/or service.
-#Qustion to slove: What factors will affect online shopping ratings and recommendations of customers by employing statistical analysis and sentiment classification.
-
-
+# Background:Companies are starting to use social media as a tool for understanding their customers, in order to further improve their products and/or service.
+# Qustion to slove: What factors will affect online shopping ratings and recommendations of customers by employing statistical analysis and sentiment classification.
 
 
 #unique number of each column
@@ -38,7 +35,7 @@ uniq_vals[i] <- length(unique(review[[i]]))
 }
 set_names(uniq_vals, names(review))
 ```
-#We extracted unique number of each column. We have 1206 unique clothing ID,  77 different Age levels, 5 levels of rating from 1 to 5; and so on
+# I extracted unique number of each column. and have 1206 unique clothing ID,  77 different Age levels, 5 levels of rating from 1 to 5; and so on
 
 
 #Descriptive
@@ -63,9 +60,9 @@ ggplot(data=review, aes(review$Positive.Feedback.Count)) +
 
 
 ```
-#People aged between 30 to 50 account for the largest amount
-#Most people would like to give 5 stars after purchasing on this e-commerce website.
-#The variable recommended.IND is binary, and we can see that most people would like to recommend item they have purchased to other people.However, from positive.feedback.count histogram plot, we can see that a large amount of people did not leave positive feedback continuously. We assumed that there were three possibilities to cause this outcome. First,  people were not satisfied with their shopping experience. For example, they picked a wrong size according to size information.  Second, some of them were new of this e-commerce website. Third, they just were too lazy to do it.
+# People aged between 30 to 50 account for the largest amount
+# Most people would like to give 5 stars after purchasing on this e-commerce website.
+# The variable recommended.IND is binary, and I can see that most people would like to recommend item they have purchased to other people.However, from positive.feedback.count histogram plot,  can see that a large amount of people did not leave positive feedback continuously. I assumed that there were three possibilities to cause this outcome. First,  people were not satisfied with their shopping experience. For example, they picked a wrong size according to size information.  Second, some of them were new of this e-commerce website. Third, they just were too lazy to do it.
 
 
 ```{r}
@@ -105,9 +102,7 @@ lbls <- paste(lbls,"%",sep="") # ad % to labels
 pie(slcs,labels = lbls)
 
 ```
-#We also did a histogram for clothing ID and extracted the Id1078 which has the largest amount. We can see that clothing id 1078 belongs to dresses class. We also want to analyze people’s purchase ratio of different ages. 30-40 years of age accounted for the highest amount of purchasing product Id1078, and 40-50 years of age accounted for the second highest amount.
-
-
+# I also did a histogram for clothing ID and extracted the Id1078 which has the largest amount. I can see that clothing id 1078 belongs to dresses class. also want to analyze people’s purchase ratio of different ages. 30-40 years of age accounted for the highest amount of purchasing product Id1078, and 40-50 years of age accounted for the second highest amount.
 
 
 #word
@@ -137,7 +132,7 @@ test_df %>%
 
 
 ```
-# We picked 18 words. Among those words, all of them are positive sentiments and "love" has the largest amount.
+# I picked 18 words. Among those words, all of them are positive sentiments and "love" has the largest amount.
 
 
 ```{r}
@@ -209,8 +204,8 @@ test_df_med %>%
   coord_flip()
 
 ```
-#We subdivided all rating into three different levels: 4-5 as high rate; 3 as medium rate; 1-2 as low rate. Based on these three datasets, we did word frequency of title and class name frequency respectively.
-#From the high rate plot, we can conclude that all words selected are positive sentiment, customers were satisfied with the product they purchased. From the medium rate plot, we can see that some negative words started existing. Those words were more foucusing on design of the clothing. From the low rate plot, there were more negative sentiment words existing than medium rate. Those negative words were more likely disappointed about the quality of the cloth rather than design of the cloth.
+# I subdivided all rating into three different levels: 4-5 as high rate; 3 as medium rate; 1-2 as low rate. Based on these three datasets, I did word frequency of title and class name frequency respectively.
+#From the high rate plot, I can conclude that all words selected are positive sentiment, customers were satisfied with the product they purchased. From the medium rate plot, I can see that some negative words started existing. Those words were more foucusing on design of the clothing. From the low rate plot, there were more negative sentiment words existing than medium rate. Those negative words were more likely disappointed about the quality of the cloth rather than design of the cloth.
 
 
 #scattor plot
@@ -241,5 +236,5 @@ ggplot(data = count_low_class) +
   geom_point(mapping = aes(x = Class.Name, y = count, color = Class.Name)) 
   
 ```
-#We did class.name frequency of each different rating level. Based on the results, we can conclude that Blouses, Dresses, and Knits are bestseller of this e-commerce website. However, since there still were some medium and low rating of Blouses, Dresses, and Knits, this e-commerce website should figure out how to improve the rating of these two rating levels.
+# I did class.name frequency of each different rating level. Based on the results, conclude that Blouses, Dresses, and Knits are bestseller of this e-commerce website. However, since there still were some medium and low rating of Blouses, Dresses, and Knits, this e-commerce website should figure out how to improve the rating of these two rating levels.
  
