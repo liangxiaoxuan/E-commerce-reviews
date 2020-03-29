@@ -7,6 +7,7 @@ This repo amis to analyze what factors will affect online shopping ratings and r
 
 ## Descriptive Analysis
 * class.name frequency of each different rating level
+  * For exapmle --> Hight rating:
 ![](https://github.com/liangxiaoxuan/E-commerce-reviews/blob/master/png/high-class.png)  
 
 ## Predictive Analysis
