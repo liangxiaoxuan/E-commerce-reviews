@@ -15,5 +15,5 @@ This repo amis to analyze what factors will affect online shopping ratings and r
 
 ## Predictive Analysis
 * Sentiments analysis
- * To analyze which emotional words from reviews are always be used in high rating
- ![](https://github.com/liangxiaoxuan/E-commerce-reviews/blob/master/png/negitive:positive%20words.png)  
+  * To analyze which emotional words from reviews are always be used in high rating
+  ![](https://github.com/liangxiaoxuan/E-commerce-reviews/blob/master/png/negitive:positive%20words.png)  
