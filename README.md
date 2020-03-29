@@ -7,13 +7,14 @@ This repo amis to analyze what factors will affect online shopping ratings and r
   * Interface:
   ![](https://github.com/liangxiaoxuan/E-commerce-reviews/blob/master/png/shinyapp.png)  
  
+## Examples of descriptive analysis and predictive analysis
 
-## Descriptive Analysis
+### Descriptive Analysis
 * class.name frequency of each different rating level
   * For exapmle --> Hight rating:
 ![](https://github.com/liangxiaoxuan/E-commerce-reviews/blob/master/png/high-class.png)  
 
-## Predictive Analysis
+### Predictive Analysis
 * Sentiments analysis
   * To analyze which emotional words from reviews are always be used in high rating
   ![](https://github.com/liangxiaoxuan/E-commerce-reviews/blob/master/png/negitive:positive%20words.png)  
