@@ -1,0 +1,245 @@
+---
+title: "E_commerce"
+author: "xiaoxuan liang"
+date: "2019/4/24"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = F, warning = F)
+```
+
+```{r}
+review <- read.csv("Womens Clothing E-Commerce Reviews.csv")
+attach(review)
+```
+
+
+```{r}
+library(tidyverse)
+library(wordcloud)
+library(dplyr)
+library(tidytext)
+library(ggplot2)
+
+```
+
+#Background:Companies are starting to use social media as a tool for understanding their customers, in order to further improve their products and/or service.
+#Qustion to slove: What factors will affect online shopping ratings and recommendations of customers by employing statistical analysis and sentiment classification.
+
+
+
+
+#unique number of each column
+```{r}
+uniq_vals <- vector("integer", ncol(review))
+for ( i in seq_along(review)){
+uniq_vals[i] <- length(unique(review[[i]]))
+}
+set_names(uniq_vals, names(review))
+```
+#We extracted unique number of each column. We have 1206 unique clothing ID,  77 different Age levels, 5 levels of rating from 1 to 5; and so on
+
+
+#Descriptive
+```{r}
+#hist&frequency
+
+#clothing.id
+ggplot(data=review, aes(review$Clothing.ID)) + 
+  geom_histogram()
+#age
+ggplot(data = review, aes(review$Age)) +
+  geom_histogram()
+#rating
+ggplot(data = review, aes(review$Rating)) +
+  geom_histogram()
+#recommended
+ggplot(data = review, aes(review$Recommended.IND)) +
+  geom_histogram()
+#positive feedback count
+ggplot(data=review, aes(review$Positive.Feedback.Count)) +
+  geom_histogram()
+
+
+```
+#People aged between 30 to 50 account for the largest amount
+#Most people would like to give 5 stars after purchasing on this e-commerce website.
+#The variable recommended.IND is binary, and we can see that most people would like to recommend item they have purchased to other people.However, from positive.feedback.count histogram plot, we can see that a large amount of people did not leave positive feedback continuously. We assumed that there were three possibilities to cause this outcome. First,  people were not satisfied with their shopping experience. For example, they picked a wrong size according to size information.  Second, some of them were new of this e-commerce website. Third, they just were too lazy to do it.
+
+
+```{r}
+#identify the most frequently clothing id of clothing id column
+names(which.max(table(review$Clothing.ID)))
+
+clothing1078 <- review[review$Clothing.ID==1078,]
+group_cloth1078 <- group_by(clothing1078, Age)
+count_cloth1078<-summarize(group_cloth1078,count=n())
+
+
+
+#since there are 64 different ages in age column, I decide to divide them in to some groups
+
+age1078 <- clothing1078$Age
+age1078[age1078 <20 & age1078 >=10] <- "10-20"
+age1078[age1078 <30 & age1078 >=20] <- "20-30"
+age1078[age1078 <40 & age1078 >=30] <- "30-40"
+age1078[age1078 <50 & age1078 >=40] <- "40-50"
+age1078[age1078 <60 & age1078 >=50] <- "50-60"
+age1078[age1078 <70 & age1078 >=60] <- "60-70"
+age1078[age1078 <80 & age1078 >=70] <- "70-80"
+age1078[age1078 <90 & age1078 >=80] <- "80-90"
+age1078[age1078 <100 & age1078 >=90] <- "90-100"
+
+clothing1078 <- data.frame(clothing1078, age1078)
+
+group1078 <- group_by(clothing1078, age1078)
+count1078<-summarize(group1078,count=n())
+
+# Pie Chart with Percentages
+slcs<- count1078$count
+labl <- count1078$age1078
+pct <- round(count1078$count/sum(count1078$count)*100)
+lbls <- paste(labl, pct) # add percents to labels 
+lbls <- paste(lbls,"%",sep="") # ad % to labels 
+pie(slcs,labels = lbls)
+
+```
+#We also did a histogram for clothing ID and extracted the Id1078 which has the largest amount. We can see that clothing id 1078 belongs to dresses class. We also want to analyze people’s purchase ratio of different ages. 30-40 years of age accounted for the highest amount of purchasing product Id1078, and 40-50 years of age accounted for the second highest amount.
+
+
+
+
+#word
+```{r}
+
+
+#total title
+text_df <-data_frame(
+  line = 1:length(review[,4]),
+  text = as.character(review[,4])
+)
+
+data(stop_words)
+test_df <- text_df %>%
+  unnest_tokens(word,text)%>%
+  mutate(word=str_extract(word, "[a-z']+")) %>%
+  anti_join(stop_words) %>%
+  count(word)
+test_df %>%
+  filter(n>400) %>%
+  mutate(word=reorder(word, n)) %>%
+  ggplot(aes(word, n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+
+
+
+```
+# We picked 18 words. Among those words, all of them are positive sentiments and "love" has the largest amount.
+
+
+```{r}
+#high/ low/ med rated & title
+high <- review[(review$Rating > 3),]
+low <- review[(review$Rating < 3),]
+med <- review[(review$Rating == 3),]
+
+# high rated title
+text_df_high<-data_frame(
+  line = 1:length(high[,4]),
+  text = as.character(high[,4])
+)
+
+data(stop_words)
+test_df_high<- text_df_high %>%
+  unnest_tokens(word,text)%>%
+  mutate(word=str_extract(word, "[a-z']+")) %>%
+  anti_join(stop_words) %>%
+  count(word)
+test_df_high %>%
+  filter(n>400) %>%
+  mutate(word=reorder(word, n)) %>%
+  ggplot(aes(word, n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+
+
+# low rated title
+text_df_low<-data_frame(
+  line = 1:length(low[,4]),
+  text = as.character(low[,4])
+)
+
+data(stop_words)
+test_df_low<- text_df_low %>%
+  unnest_tokens(word,text)%>%
+  mutate(word=str_extract(word, "[a-z']+")) %>%
+  anti_join(stop_words) %>%
+  count(word)
+test_df_low %>%
+  filter(n>20) %>%
+  mutate(word=reorder(word, n)) %>%
+  ggplot(aes(word, n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+
+
+#median rated title
+text_df_med<-data_frame(
+  line = 1:length(med[,4]),
+  text = as.character(med[,4])
+)
+
+data(stop_words)
+test_df_med<- text_df_med %>%
+  unnest_tokens(word,text)%>%
+  mutate(word=str_extract(word, "[a-z']+")) %>%
+  anti_join(stop_words) %>%
+  count(word)
+test_df_med %>%
+  filter(n>20) %>%
+  mutate(word=reorder(word, n)) %>%
+  ggplot(aes(word, n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+
+```
+#We subdivided all rating into three different levels: 4-5 as high rate; 3 as medium rate; 1-2 as low rate. Based on these three datasets, we did word frequency of title and class name frequency respectively.
+#From the high rate plot, we can conclude that all words selected are positive sentiment, customers were satisfied with the product they purchased. From the medium rate plot, we can see that some negative words started existing. Those words were more foucusing on design of the clothing. From the low rate plot, there were more negative sentiment words existing than medium rate. Those negative words were more likely disappointed about the quality of the cloth rather than design of the cloth.
+
+
+#scattor plot
+```{r}
+#high
+grouping_high_class <- group_by(high, Class.Name)
+count_high_class <-summarize(grouping_high_class,count=n())
+count_high_class
+ 
+ggplot(data = count_high_class) +
+  geom_point(mapping = aes(x = Class.Name, y = count, color = Class.Name)) 
+  
+
+#med
+grouping_med_class <- group_by(med, Class.Name)
+count_med_class <-summarize(grouping_med_class,count=n())
+count_med_class
+
+ggplot(data = count_med_class) +
+  geom_point(mapping = aes(x = Class.Name, y = count, color = Class.Name))
+
+#low
+grouping_low_class <- group_by(low, Class.Name)
+count_low_class <-summarize(grouping_low_class,count=n())
+count_low_class
+
+ggplot(data = count_low_class) +
+  geom_point(mapping = aes(x = Class.Name, y = count, color = Class.Name)) 
+  
+```
+#We did class.name frequency of each different rating level. Based on the results, we can conclude that Blouses, Dresses, and Knits are bestseller of this e-commerce website. However, since there still were some medium and low rating of Blouses, Dresses, and Knits, this e-commerce website should figure out how to improve the rating of these two rating levels.
+ 

@@ -1,0 +1,266 @@
+---
+title: "Ds_project"
+author: "Xiaoxuan Liang"
+date: "4/24/2019"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE,warning = FALSE)
+
+```
+#Text Mining
+
+
+```{r}
+library(tidyverse)
+library(raster)
+library(janeaustenr)
+library(stringr)
+library(gutenbergr)
+library(tidytext)
+library(reshape2)
+library(wordcloud)
+library(textmineR)
+library(stringr)
+library(MASS)
+library(tm)
+library(topicmodels)
+library(keras)
+library(data.table)
+library(ggplot2)
+library(rpart)
+library(rpart.plot)
+library(e1071)
+library(nnet)
+```
+
+
+```{r}
+#Input dataset 
+review = read.csv("~/Desktop/data science/project/Reviews.csv",header = T,encoding="utf-8")
+
+```
+
+#Data Cleaning:We remove all the 'NA' or unvalue titles from the dataset 
+```{r}
+#Data cleaning
+#Delete NA 
+review$Title <-as.character(review$Title)
+review$Title <-trim(review$Title)
+review$Title[review$Title == ""] <- NA
+review$Title[review$Title == "NA"] <- NA
+sum(is.na(review$Title))
+
+for (i in 1:length(review$Title)){
+  if(is.na(review$Title[i]) == TRUE){
+    review <- review[-i,]
+  }
+}
+
+sum(is.na(review))
+#Do not have NA in each colmun now 
+#write.csv(review,file="~/Desktop/data science/project/reviews_ed.csv",row.names = FALSE)
+```
+
+
+#After that, we wanted to delete all the characters in the customer's reviews.And we can see all the word are just separated by the space. It's easier for us to do analysis and text mining using the cleaned data.
+```{r}
+#delete any Special characters in text  #[^A-Za-z0-9_\']
+R = read.csv("~/Desktop/data science/project/reviews_ed.csv",header = T,encoding="utf-8")
+attach(R)
+R$Title <- as.character(R$Title)
+R$Review.Text <- as.character(R$Review.Text)
+R$Title <-gsub('[^\u4e00-\u9fa5a-zA-Z0-9]'," ",R$Title)
+R$Review.Text <-gsub('[^\u4e00-\u9fa5a-zA-Z0-9]'," ",R$Review.Text)
+
+#write.csv(R,file="~/Desktop/data science/project/reviews_cleaned.csv",row.names = FALSE)
+```
+
+
+#Sentiment Analysis:
+```{r}
+#Data
+S = read.csv("~/Desktop/data science/project/reviews_cleaned.csv",header = T,encoding="utf-8")
+attach(S)
+#high rated (level 4-5)
+high_rate <- S[S$Rating > 3,]
+#low rated 
+low_rate <- S[S$Rating <3,]
+#netrual 
+netrual_rate <- S[S$Rating == 3,]
+```
+
+
+#Analyze Netural polarity (postive or negative): In this part, we aim to explore the rating equal to 3 which is a neutral rating. So, we decide to identify which sentiments it’s belongs by. we decide to use "bing" lexicon to test if the reviews tend to positive or negative sentiments. At first. we remove the word “Top” which could have bad influence on our analysis. Afterwards, from the plot, it’s indicated that the Positive sentiment is more significant. So, we wanted to conclude that the reviews in rating 3 is more tend to positive.
+```{r}
+#Analyze Netural polarity 
+#Get rid of uninteresting words 
+a <-as.character(netrual_rate$Review.Text)
+b <-data_frame(txt =a )
+Netrualsentiment <- b%>%
+  unnest_tokens(word,txt)%>%
+  anti_join(stop_words)%>%
+  count(word,sort = TRUE)  
+
+#IF it's postive or negative
+Netrual_NorP <- Netrualsentiment %>%
+  inner_join(get_sentiments("bing"))
+  
+#Remove the "top"
+bing_notop <- get_sentiments("bing")%>%
+  filter(word !="top")
+Netrual_NorP2 <- Netrualsentiment %>%
+  inner_join(bing_notop)%>%
+  spread(sentiment,n,fill=0)%>%
+  mutate(sentiment = positive-negative)
+
+#plot  
+Netrual_NorP2 %>%
+  ggplot(aes(word, sentiment)) +
+  geom_col(colour = "red") 
+
+#It looks more postive than negetive 
+```
+
+
+#We explored what top 10 words in Negative and Positive separately in rating 3.  As we can see, customers complain more about that the clothing size isn’t fit themselves or the products did not achieve their expectations. However, in positive words, people like praising the clothing appearance also the quality of the clothes. 
+```{r}
+#compare two sentiments（visualize it)
+N <- b%>%
+  unnest_tokens(word,txt)%>%
+  anti_join(stop_words)
+
+bing_word_counts <- N %>%
+  inner_join(bing_notop)%>%
+  count(word,sentiment,sort = TRUE)
+
+#plot the top 10 words of Negetive or Positive
+bing_word_counts %>%
+  group_by(sentiment)%>%
+  top_n(10)%>%
+  ungroup()%>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(word, n, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free_y") +
+  labs(y = "Contribution to sentiment",
+  x = NULL) +
+  coord_flip()
+```
+
+
+#Analyze the emotion words of high-rate and low-rate: On the other hand. we wanted to analyze which emotional words the reviews are always be used in high rating. First, we hypothesis that high rating always has positive words. So we decided to remove some of negative sentiments words in “nrc” lexicon in order to seeing more clear about the connection with the words and positive emotion sentiments. So, the main positive emotion sentiments are “joy”,” anticipation”,”surprise”,”trust”.
+```{r}
+#high-rate
+highR <-as.character(high_rate$Review.Text)
+highD <-data_frame(txt =highR)
+nrcjoy <- get_sentiments("nrc")%>%
+  filter(sentiment != "positive")%>%
+  filter(sentiment != "negative")%>%
+  filter(sentiment != "anger" )%>%
+  filter(sentiment != "fear" )%>%
+  filter(sentiment != "sadness")%>%
+  filter(sentiment != "disgust")
+  
+highS <- highD%>%
+  unnest_tokens(word,txt)%>%
+  anti_join(stop_words)%>%
+  inner_join(nrcjoy)%>%
+  count(word,sentiment,sort = TRUE)%>%
+  ungroup()
+
+#截图词对应错的
+#World Could plot of emontional word of high rate
+highCould <- highD%>%
+  unnest_tokens(word,txt)%>%
+  anti_join(stop_words)%>%
+  inner_join(nrcjoy)%>%
+  count(word,sentiment,sort = TRUE)%>%
+  top_n(100)%>%
+  acast(word ~ sentiment, value.var = "n", fill =0)%>%
+  comparison.cloud(max.words = 30)
+highCould 
+
+```
+
+
+#Also, we do have the same problem in low rating analysis. So, we removed some positive emotional words from “nrc”.after that, the wordcloud shows us the main negative emotional words are: “disgust”, “anger”, “fear”, “sadness” 
+```{r}
+#high-rate
+lowR <-as.character(low_rate$Review.Text)
+lowD <-data_frame(txt =lowR)
+nrcbad <- get_sentiments("nrc")%>%
+  filter(sentiment != "positive")%>%
+  filter(sentiment != "negative")%>%
+  filter(sentiment != "anticipation" )%>%
+  filter(sentiment != "trust" )%>%
+  filter(sentiment != "joy")%>%
+  filter(sentiment != "surprise")
+  
+lowS <- lowD%>%
+  unnest_tokens(word,txt)%>%
+  anti_join(stop_words)%>%
+  inner_join(nrcbad)%>%
+  count(word,sentiment,sort = TRUE)%>%
+  ungroup()
+
+
+#World Could plot of emontional word of high rate
+lowCould <- lowD%>%
+  unnest_tokens(word,txt)%>%
+  anti_join(stop_words)%>%
+  inner_join(nrcbad)%>%
+  count(word,sentiment,sort = TRUE)%>%
+  top_n(100)%>%
+  acast(word ~ sentiment, value.var = "n", fill =0)%>%
+  comparison.cloud(max.words = 30)
+
+lowCould 
+
+```
+
+
+#Recommendation Prediciton with classification trees:Before the prediction, we did a basic text feature engineering. we used the basic function named tf- idf which stands for Term frequency-inverse document frequency. One of the simplest ranking functions is computed by summing the tf–idf for each query term.The tf idf weight is a statistical measure used to evaluate how important a word is to a document in a collection or corpus. In other words, it’s a way to reflect how important a word is to the texts. For example, which words are more important in the customers reviews to predict the recommendation. 
+```{r}
+reviews_cleaned = read.csv("~/Desktop/data science/project/reviews_cleaned.csv",header = T,encoding="utf-8")
+modeldata <-data_frame(review = reviews_cleaned$Review.Text, Recommended = reviews_cleaned$Recommended.IND)
+#(tf idf) 
+review_corpus <- Corpus(VectorSource(modeldata$review))
+review_corpus <- tm_map(review_corpus, removeWords, c("the", "and", stopwords("english")))
+R_dtm_tfidf <- DocumentTermMatrix(review_corpus,control = list(weighting = weightTfIdf))
+R_dtm_tfidf <- removeSparseTerms(R_dtm_tfidf, 0.99)
+
+
+ 
+inspect(R_dtm_tfidf[1,1:20])  #for "1"
+```
+
+
+#The library we used is “tm”, we have to convert all the word weights into a matrix. As you can see , the words have already become the input variables which are for the prediction. So, here is the simple way to convert the text variables into numeric variables. 
+```{r}
+#combine matrix
+modeldata$review <- NULL
+modeldata <- cbind(modeldata, as.matrix(R_dtm_tfidf))
+modeldata$Recommended <- as.factor(modeldata$Recommended )
+
+#data split
+set.seed(123)
+id_train <- sample(nrow(modeldata),nrow(modeldata)*0.8)
+reviews.train =modeldata[id_train,]
+reviews.test = modeldata[-id_train,]
+
+#train model
+#reviews.glm = glm(Recommended~ ., family = "binomial", data =reviews.train,maxit = 100)
+#summary(reviews.glm)
+
+reviews.tree = rpart(Recommended~.,  method = "class", data = reviews.train)
+prp(reviews.tree)
+```
+#After the data tidy, we used the classification trees to do recommendation prediction. we separated the reviews into training and testing for machine learning. and then, we put it into the classification tree model. below it’s the tree we after modelling. We can get if it’s not recommended or recommended by the trees step by step.
+
+#Conlusion:As conclusion, From the descripitve analysis, we know fresses, blouses, and knits are their bestseller class; from the sentiment analysis, we got that neutral rating is more approach to positive sentiment; and from the text prediciton, most of the classes are be recommended instead of unrecommended by using the predict model. However, we still can improve our data quality with the data bais of inaccuracies reviews, undeserved low score,and reputation crisis
+.
+
+
+
