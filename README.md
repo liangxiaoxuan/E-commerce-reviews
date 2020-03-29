@@ -4,6 +4,8 @@ This repo amis to analyze what factors will affect online shopping ratings and r
 
 * Powerpoint Link: https://docs.google.com/presentation/d/1c-LLiXHLsHyywkHuPhtFfQmDruq8aJvFFjgPTEoqjpI/edit?usp=sharing
 * ShinyApp Link: https://liangxiaoxuan.shinyapps.io/Review/
+ * Interface:
+ 
 
 ## Descriptive Analysis
 * class.name frequency of each different rating level
