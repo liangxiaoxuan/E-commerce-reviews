@@ -6,5 +6,7 @@ This repo amis to analyze what factors will affect online shopping ratings and r
 * ShinyApp Link: https://liangxiaoxuan.shinyapps.io/Review/
 
 ## Descriptive Analysis
+* class.name frequency of each different rating level
+![](https://github.com/liangxiaoxuan/E-commerce-reviews/blob/master/png/high-class.png)  
 
 ## Predictive Analysis
