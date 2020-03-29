@@ -1,5 +1,5 @@
 ---
-title: "Ds_project"
+title: "Text Mining"
 author: "Xiaoxuan Liang"
 date: "4/24/2019"
 output: word_document
@@ -42,7 +42,7 @@ review = read.csv("~/Desktop/data science/project/Reviews.csv",header = T,encodi
 
 ```
 
-#Data Cleaning:We remove all the 'NA' or unvalue titles from the dataset 
+# Data Cleaning: I remove all the 'NA' or unvalue titles from the dataset 
 ```{r}
 #Data cleaning
 #Delete NA 
@@ -64,7 +64,7 @@ sum(is.na(review))
 ```
 
 
-#After that, we wanted to delete all the characters in the customer's reviews.And we can see all the word are just separated by the space. It's easier for us to do analysis and text mining using the cleaned data.
+# After that, I wanted to delete all the characters in the customer's reviews.And I can see all the word are just separated by the space. It's easier for us to do analysis and text mining using the cleaned data.
 ```{r}
 #delete any Special characters in text  #[^A-Za-z0-9_\']
 R = read.csv("~/Desktop/data science/project/reviews_ed.csv",header = T,encoding="utf-8")
@@ -92,7 +92,7 @@ netrual_rate <- S[S$Rating == 3,]
 ```
 
 
-#Analyze Netural polarity (postive or negative): In this part, we aim to explore the rating equal to 3 which is a neutral rating. So, we decide to identify which sentiments it’s belongs by. we decide to use "bing" lexicon to test if the reviews tend to positive or negative sentiments. At first. we remove the word “Top” which could have bad influence on our analysis. Afterwards, from the plot, it’s indicated that the Positive sentiment is more significant. So, we wanted to conclude that the reviews in rating 3 is more tend to positive.
+#Analyze Netural polarity (postive or negative): In this part, I aim to explore the rating equal to 3 which is a neutral rating. So, I decide to identify which sentiments it’s belongs by. I decide to use "bing" lexicon to test if the reviews tend to positive or negative sentiments. At first. I remove the word “Top” which could have bad influence on our analysis. Afterwards, from the plot, it’s indicated that the Positive sentiment is more significant. So, I wanted to conclude that the reviews in rating 3 is more tend to positive.
 ```{r}
 #Analyze Netural polarity 
 #Get rid of uninteresting words 
@@ -124,7 +124,7 @@ Netrual_NorP2 %>%
 ```
 
 
-#We explored what top 10 words in Negative and Positive separately in rating 3.  As we can see, customers complain more about that the clothing size isn’t fit themselves or the products did not achieve their expectations. However, in positive words, people like praising the clothing appearance also the quality of the clothes. 
+# I explored what top 10 words in Negative and Positive separately in rating 3.  As we can see, customers complain more about that the clothing size isn’t fit themselves or the products did not achieve their expectations. However, in positive words, people like praising the clothing appearance also the quality of the clothes. 
 ```{r}
 #compare two sentiments（visualize it)
 N <- b%>%
@@ -150,7 +150,7 @@ bing_word_counts %>%
 ```
 
 
-#Analyze the emotion words of high-rate and low-rate: On the other hand. we wanted to analyze which emotional words the reviews are always be used in high rating. First, we hypothesis that high rating always has positive words. So we decided to remove some of negative sentiments words in “nrc” lexicon in order to seeing more clear about the connection with the words and positive emotion sentiments. So, the main positive emotion sentiments are “joy”,” anticipation”,”surprise”,”trust”.
+#Analyze the emotion words of high-rate and low-rate: On the other hand. I wanted to analyze which emotional words the reviews are always be used in high rating. First, I hypothesis that high rating always has positive words. So I decided to remove some of negative sentiments words in “nrc” lexicon in order to seeing more clear about the connection with the words and positive emotion sentiments. So, the main positive emotion sentiments are “joy”,” anticipation”,”surprise”,”trust”.
 ```{r}
 #high-rate
 highR <-as.character(high_rate$Review.Text)
@@ -184,8 +184,7 @@ highCould
 
 ```
 
-
-#Also, we do have the same problem in low rating analysis. So, we removed some positive emotional words from “nrc”.after that, the wordcloud shows us the main negative emotional words are: “disgust”, “anger”, “fear”, “sadness” 
+# Also, I do have the same problem in low rating analysis. So, I removed some positive emotional words from “nrc”.after that, the wordcloud shows us the main negative emotional words are: “disgust”, “anger”, “fear”, “sadness” 
 ```{r}
 #high-rate
 lowR <-as.character(low_rate$Review.Text)
@@ -220,8 +219,7 @@ lowCould
 
 ```
 
-
-#Recommendation Prediciton with classification trees:Before the prediction, we did a basic text feature engineering. we used the basic function named tf- idf which stands for Term frequency-inverse document frequency. One of the simplest ranking functions is computed by summing the tf–idf for each query term.The tf idf weight is a statistical measure used to evaluate how important a word is to a document in a collection or corpus. In other words, it’s a way to reflect how important a word is to the texts. For example, which words are more important in the customers reviews to predict the recommendation. 
+# Recommendation Prediciton with classification trees:Before the prediction, I did a basic text feature engineering. I used the basic function named tf- idf which stands for Term frequency-inverse document frequency. One of the simplest ranking functions is computed by summing the tf–idf for each query term.The tf idf weight is a statistical measure used to evaluate how important a word is to a document in a collection or corpus. In other words, it’s a way to reflect how important a word is to the texts. For example, which words are more important in the customers reviews to predict the recommendation. 
 ```{r}
 reviews_cleaned = read.csv("~/Desktop/data science/project/reviews_cleaned.csv",header = T,encoding="utf-8")
 modeldata <-data_frame(review = reviews_cleaned$Review.Text, Recommended = reviews_cleaned$Recommended.IND)
@@ -237,7 +235,7 @@ inspect(R_dtm_tfidf[1,1:20])  #for "1"
 ```
 
 
-#The library we used is “tm”, we have to convert all the word weights into a matrix. As you can see , the words have already become the input variables which are for the prediction. So, here is the simple way to convert the text variables into numeric variables. 
+#T he library I used is “tm”, I have to convert all the word weights into a matrix. As you can see , the words have already become the input variables which are for the prediction. So, here is the simple way to convert the text variables into numeric variables. 
 ```{r}
 #combine matrix
 modeldata$review <- NULL
@@ -257,9 +255,9 @@ reviews.test = modeldata[-id_train,]
 reviews.tree = rpart(Recommended~.,  method = "class", data = reviews.train)
 prp(reviews.tree)
 ```
-#After the data tidy, we used the classification trees to do recommendation prediction. we separated the reviews into training and testing for machine learning. and then, we put it into the classification tree model. below it’s the tree we after modelling. We can get if it’s not recommended or recommended by the trees step by step.
+# After the data tidy, I used the classification trees to do recommendation prediction. I separated the reviews into training and testing for machine learning. and then, I put it into the classification tree model. below it’s the tree I after modelling. I can get if it’s not recommended or recommended by the trees step by step.
 
-#Conlusion:As conclusion, From the descripitve analysis, we know fresses, blouses, and knits are their bestseller class; from the sentiment analysis, we got that neutral rating is more approach to positive sentiment; and from the text prediciton, most of the classes are be recommended instead of unrecommended by using the predict model. However, we still can improve our data quality with the data bais of inaccuracies reviews, undeserved low score,and reputation crisis
+#Conlusion:As conclusion, From the descripitve analysis, I know fresses, blouses, and knits are their bestseller class; from the sentiment analysis, I got that neutral rating is more approach to positive sentiment; and from the text prediciton, most of the classes are be recommended instead of unrecommended by using the predict model. However, I still can improve our data quality with the data bais of inaccuracies reviews, undeserved low score,and reputation crisis
 .
 
 
